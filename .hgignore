@@ -1,5 +1,6 @@
-relre:.*\.orig
-glob:**\obj\**\*.*
-glob:**\bin\**\*.*
-glob:*.user
-glob:*.suo
+.*\.orig
+**\obj\**\*.*
+**\bin\**\*.*
+*.user
+*.suo
+packages\**
