@@ -278,10 +278,10 @@ namespace Mercurial.Tests
 				diffText = client.Export ("1");
 			}
 			string[] lines = diffText.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			Assert.AreEqual (12, lines.Length, "Unexpected diff length");
-			Assert.AreEqual ("@@ -1,1 +1,1 @@", lines [9]);
-			Assert.AreEqual ("-1", lines [10]);
-			Assert.AreEqual ("+2", lines [11]);
+			Assert.AreEqual (13, lines.Length, "Unexpected diff length");
+			Assert.AreEqual ("@@ -1,1 +1,1 @@", lines [10]);
+			Assert.AreEqual ("-1", lines [11]);
+			Assert.AreEqual ("+2", lines [12]);
 		}
 		
 		[Test]
@@ -651,16 +651,17 @@ namespace Mercurial.Tests
 			string file = Path.Combine (path, "foo");
 			Console.WriteLine (Environment.CurrentDirectory);
 			CommandClient.Initialize (path, MercurialPath);
-			File.Copy ("../../../Mercurial/CommandClient.cs", file);
+            File.WriteAllText(file, "test text");
+
 			using (var client = new CommandClient (path, null, null, MercurialPath)) {
 				client.Add (file);
 				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
+				Assert.That (!client.Status().ContainsKey ("foo"), "Default commit failed for foo");
 				
-				var contents = client.Cat (null, file);
+				var contents = client.Cat(null, file);
 				Assert.AreEqual (1, contents.Count, "Unexpected size of file set");
-				Assert.That (contents.ContainsKey (file), "foo not in file set");
-				Assert.AreEqual (File.ReadAllText (file), contents [file]);
+				Assert.That (contents.ContainsKey(file), "foo not in file set");
+				Assert.AreEqual (File.ReadAllText(file), contents[file]);
 			}
 		}
 		
