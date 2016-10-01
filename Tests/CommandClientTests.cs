@@ -22,19 +22,15 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 
 using NUnit.Framework;
 
-using Mercurial;
-
 namespace Mercurial.Tests
 {
-	[TestFixture()]
+	[TestFixture]
 	public class CommandClientTests
 	{
 		static readonly string TestRepo = "https://bitbucket.org/TakUnity/monodevelop-hg";
