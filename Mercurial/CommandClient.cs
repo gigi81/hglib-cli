@@ -21,10 +21,10 @@
 
 using System;
 using System.IO;
-using System.Xml;
 using System.Net;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -137,19 +137,19 @@ namespace Mercurial
 				));
 			}
 			
-			ProcessStartInfo commandServerInfo = new ProcessStartInfo (mercurialPath, arguments.ToString ().Trim ());
-			if (null != encoding) {
-				commandServerInfo.EnvironmentVariables [MercurialEncodingKey] = encoding;
-			}
-			commandServerInfo.RedirectStandardInput =
-			commandServerInfo.RedirectStandardOutput = 
-			commandServerInfo.RedirectStandardError = true;
-			commandServerInfo.UseShellExecute = false;
-			commandServerInfo.CreateNoWindow = true;
+			var info = new ProcessStartInfo (mercurialPath, arguments.ToString ().Trim ());
+			//TODO:
+			//if (null != encoding)
+			//    info.EnvironmentVariables[MercurialEncodingKey] = encoding;
+			info.RedirectStandardInput = true;
+			info.RedirectStandardOutput = true;
+			info.RedirectStandardError = true;
+			info.UseShellExecute = false;
+			info.CreateNoWindow = true;
 			
 			try {
 				// Console.WriteLine ("Launching command server with: {0} {1}", mercurialPath, arguments.ToString ());
-				commandServer = Process.Start (commandServerInfo);
+				commandServer = Process.Start (info);
 			} catch (Exception ex) {
 				throw new ServerException ("Error launching mercurial command server", ex);
 			}
@@ -535,9 +535,12 @@ namespace Mercurial
 			
 			// Console.WriteLine (result.Output);
 			
-			try {
-				return ParseRevisionsFromLog (result.Output);
-			} catch (XmlException ex) {
+			try
+			{
+				return Revision.ParseRevisionsFromLog(result.OutputStream);
+			}
+			catch (XmlException ex)
+			{
 				throw new CommandException ("Error getting log", ex);
 			}
 		}
@@ -596,9 +599,7 @@ namespace Mercurial
 				throw new CommandException ("Error getting incoming", result);
 			
 			try {
-				int index = result.Output.IndexOf ("<?xml");
-				if (0 > index) return new List<Revision> ();
-				return ParseRevisionsFromLog (result.Output.Substring (index));
+				return Revision.ParseRevisionsFromLog(result.OutputStream);
 			} catch (XmlException ex) {
 				throw new CommandException ("Error getting incoming", ex);
 			}
@@ -652,11 +653,12 @@ namespace Mercurial
 			CommandResult result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, "Error getting incoming");
 			
-			try {
-				int index = result.Output.IndexOf ("<?xml");
-				if (0 > index) return new List<Revision> ();
-				return ParseRevisionsFromLog (result.Output.Substring (index));
-			} catch (XmlException ex) {
+			try
+			{
+				return Revision.ParseRevisionsFromLog(result.OutputStream);
+			}
+			catch (XmlException ex)
+			{
 				throw new CommandException ("Error getting incoming", ex);
 			}
 		}
@@ -708,7 +710,7 @@ namespace Mercurial
 			}
 			
 			try {
-				return ParseRevisionsFromLog (result.Output);
+				return Revision.ParseRevisionsFromLog(result.OutputStream);
 			} catch (XmlException ex) {
 				throw new CommandException ("Error getting heads", ex);
 			}
@@ -1441,8 +1443,8 @@ namespace Mercurial
 			AddNonemptyStringArgument (arguments, revision, "--rev");
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (file), file);
 			
-			CommandResult result = ThrowOnFail (GetCommandOutput (arguments, null), 0, "Error getting parents");
-			return ParseRevisionsFromLog (result.Output);
+			var result = ThrowOnFail(GetCommandOutput (arguments, null), 0, "Error getting parents");
+			return Revision.ParseRevisionsFromLog(result.OutputStream);
 		}
 		
 		public IDictionary<string,string> Paths (string name=null)
@@ -1658,13 +1660,13 @@ namespace Mercurial
 			
 				try {
 					while (true) {
-						CommandMessage message = ReadMessage ();
+						var message = ReadMessage();
 						if (CommandChannel.Result == message.Channel)
 							return ReadInt (message.Buffer, 0);
 						
 						if (inputs != null && inputs.ContainsKey (message.Channel)) {
 							byte[] sendBuffer = inputs [message.Channel] (ReadUint (message.Buffer, 0));
-							if (null == sendBuffer || 0 == sendBuffer.LongLength) {
+							if (null == sendBuffer || 0 == sendBuffer.Length) {
 							} else {
 							}
 						}
@@ -1710,23 +1712,22 @@ namespace Mercurial
 		public CommandResult GetCommandOutput (IList<string> command,
 		                                       IDictionary<CommandChannel,Func<uint,byte[]>> inputs)
 		{
-			MemoryStream output = new MemoryStream ();
-			MemoryStream error = new MemoryStream ();
-			var outputs = new Dictionary<CommandChannel,Stream> () {
+			var output = new MemoryStream ();
+			var error = new MemoryStream ();
+			var outputs = new Dictionary<CommandChannel,Stream> ()
+			{
 				{ CommandChannel.Output, output },
 				{ CommandChannel.Error, error },
 			};
 			
 			int result = RunCommand (command, outputs, inputs);
-			return new CommandResult (UTF8Encoding.UTF8.GetString (output.GetBuffer (), 0, (int)output.Length),
-			                          UTF8Encoding.UTF8.GetString (error.GetBuffer (), 0, (int)error.Length),
-			                          result);
+			return new CommandResult(output, error, result);
 		}
 		
 		void Close ()
 		{
 			if (null != commandServer) 
-				commandServer.Close ();
+				commandServer.Dispose();
 			commandServer = null;
 		}
 
@@ -2005,23 +2006,7 @@ namespace Mercurial
 				return (Mercurial.Status)(input [0]);
 			return Mercurial.Status.Clean;
 		}
-		
-		/// <summary>
-		/// Parse an xml log into a list of revisions
-		/// </summary>
-		internal static IList<Revision> ParseRevisionsFromLog (string xmlText)
-		{
-			XmlDocument document = new XmlDocument ();
-			document.LoadXml (xmlText);
-			
-			var revisions = new List<Revision> ();
-			foreach (XmlNode node in document.SelectNodes ("/log/logentry")) {
-				revisions.Add (new Revision (node));
-			}
-			
-			return revisions;
-		}
-		
+				
 		#endregion
 	}
 }

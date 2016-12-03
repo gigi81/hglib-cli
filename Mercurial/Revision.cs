@@ -20,7 +20,10 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.IO;
 using System.Xml;
+using System.Xml.Linq;
+using System.Collections.Generic;
 
 namespace Mercurial
 {
@@ -57,13 +60,27 @@ namespace Mercurial
 			Message = message;
 		}
 		
-		internal Revision (XmlNode node)
+		internal Revision (XElement node)
 		{
-			RevisionId = node.Attributes["revision"].Value;
-			Date = DateTime.Parse (node.SelectSingleNode ("date").InnerText);
-			Author = node.SelectSingleNode ("author").Attributes["email"].Value;
-			Message = node.SelectSingleNode ("msg").InnerText;
+			RevisionId = node.Attribute("revision").Value;
+			Date = DateTime.Parse(node.Element("date").Value);
+			Author = node.Element("author").Attribute("email").Value;
+			Message = node.Element("msg").Value;
 		}
 		
+		/// <summary>
+		/// Parse an xml log into a list of revisions
+		/// </summary>
+		internal static IList<Revision> ParseRevisionsFromLog(Stream output)
+		{
+			var document = XDocument.Load(output);
+			var revisions = new List<Revision>();
+
+			foreach (var node in document.Descendants("log").Descendants("logentry")) {
+				revisions.Add (new Revision (node));
+			}
+			
+			return revisions;
+		}
 	}
 }

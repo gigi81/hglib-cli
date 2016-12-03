@@ -20,6 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.IO;
 
 namespace Mercurial
 {
@@ -28,26 +29,54 @@ namespace Mercurial
 	/// </summary>
 	public class CommandResult
 	{
+		private readonly Stream _output;
+		private readonly Stream _error;
+		private readonly int _result;
+
 		/// <summary>
 		/// The output from the command
 		/// </summary>
-		public string Output { get; private set; }
+		public string Output
+		{
+			get { return GetString(_output); }
+		}
+
+		public Stream OutputStream
+		{
+			get { return _output; }
+		}
 		
 		/// <summary>
 		/// The error output from the command
 		/// </summary>
-		public string Error { get; private set; }
+		public string Error
+		{
+			get { return GetString(_error); }
+		}
+
+		public Stream ErrorStream
+		{
+			get { return _error; }
+		}
 		
 		/// <summary>
 		/// The result code from the command
 		/// </summary>
 		public int Result { get; private set; }
 
-		internal CommandResult (string output, string error, int result)
+		internal CommandResult (Stream output, Stream error, int result)
 		{
-			Output = output;
-			Error = error;
-			Result = result;
+			_output = output;
+			_error = error;
+			_result = result;
+		}
+
+		private static string GetString(Stream stream)
+		{
+			using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+			{
+				return reader.ReadToEnd();
+			}
 		}
 	}
 }
