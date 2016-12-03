@@ -26,12 +26,11 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace Mercurial.Tests
 {
-	[TestFixture]
-	public class CommandClientTests
+	public class CommandClientTests : IDisposable
 	{
 		static readonly string TestRepo = "https://bitbucket.org/TakUnity/monodevelop-hg";
 		static List<string> garbage = new List<string> ();
@@ -67,14 +66,8 @@ namespace Mercurial.Tests
 		{
 			return (Path.DirectorySeparatorChar == '\\' && Environment.NewLine == "\r\n");
 		}
-		
-		[SetUp]
-		public void Setup ()
-		{
-		}
-		
-		[TearDown]
-		public void Teardown ()
+				
+		public void Dispose()
 		{
 			foreach (string garbageDir in garbage) {
 				try {
@@ -85,14 +78,14 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestConnection ()
 		{
 			string path = GetTemporaryPath ();
 			CommandClient.Initialize (path, MercurialPath);
 		}
 		
-		[Test]
+		[Fact]
 		public void TestConfiguration ()
 		{
 			string path = GetTemporaryPath ();
@@ -100,42 +93,42 @@ namespace Mercurial.Tests
 			
 			using (CommandClient client = new CommandClient (path, null, null, MercurialPath)) {
 				IDictionary<string,string > config = client.Configuration;
-				Assert.IsNotNull (config);
-				Assert.Greater (config.Count, 0, "Expecting nonempty configuration");
+				Assert.NotNull (config);
+				Assert.True(config.Count > 0, "Expecting nonempty configuration");
 				// Console.WriteLine (config.Aggregate (new StringBuilder (), (s,pair) => s.AppendFormat ("{0} = {1}\n", pair.Key, pair.Value), s => s.ToString ()));
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestInitialize ()
 		{
 			string path = GetTemporaryPath ();
 			CommandClient.Initialize (path, MercurialPath);
-			Assert.That (Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not created at {0}", path));
+			Assert.True(Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not created at {0}", path));
 		}
 		
-		[Test]
+		[Fact]
 		public void TestRoot ()
 		{
 			string path = GetTemporaryPath ();
 			CommandClient.Initialize (path, MercurialPath);
-			Assert.That (Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not created at {0}", path));
-			
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				Assert.AreEqual (path, client.Root, "Unexpected repository root");
-			}
+			Assert.True (Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not created at {0}", path));
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                Assert.Equal(path, client.Root);
+            }
 		}
 		
-		[Test]
-		[Ignore("Don't thrash bitbucket")]
+		[Fact(Skip = "Don't thrash bitbucket")]
 		public void TestCloneRemote ()
 		{
 			string path = GetTemporaryPath ();
 			CommandClient.Clone (TestRepo, path, true, null, "10", null, false, true, MercurialPath);
-			Assert.That (Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not cloned from {0} to {1}", TestRepo, path));
+			Assert.True (Directory.Exists (Path.Combine (path, ".hg")), string.Format ("Repository was not cloned from {0} to {1}", TestRepo, path));
 		}
 		
-		[Test]
+		[Fact]
 		public void TestCloneLocal ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -152,18 +145,19 @@ namespace Mercurial.Tests
 			CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 			} catch (Exception ex) {
 				Console.WriteLine (ex);
-				Assert.That (false, ex.Message);
+				Assert.True (false, ex.Message);
 			}
-			Assert.That (Directory.Exists (Path.Combine (secondPath, ".hg")), string.Format ("Repository was not cloned from {0} to {1}", firstPath, secondPath));
-			Assert.That (File.Exists (Path.Combine (secondPath, "foo")), "foo doesn't exist in cloned working copy");
-				
-			using (var client = new CommandClient (secondPath, null, null, MercurialPath)) {
-				IList<Revision> log = client.Log (null);
-				Assert.AreEqual (1, log.Count, "Unexpected number of log entries");
-			}
+			Assert.True (Directory.Exists (Path.Combine (secondPath, ".hg")), string.Format ("Repository was not cloned from {0} to {1}", firstPath, secondPath));
+			Assert.True (File.Exists (Path.Combine (secondPath, "foo")), "foo doesn't exist in cloned working copy");
+
+            using (var client = new CommandClient(secondPath, null, null, MercurialPath))
+            {
+                IList<Revision> log = client.Log(null);
+                Assert.Equal(1, log.Count);
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestAdd ()
 		{
 			string path = GetTemporaryPath ();
@@ -177,14 +171,14 @@ namespace Mercurial.Tests
 				statuses = client.Status (null);
 			}
 			
-			Assert.IsNotNull (statuses);
-			Assert.That (statuses.ContainsKey ("foo"), "No status received for foo");
-			Assert.That (statuses.ContainsKey ("bar"), "No status received for bar");
-			Assert.AreEqual (Status.Added, statuses ["foo"]);
-			Assert.AreEqual (Status.Added, statuses ["bar"]);
+			Assert.NotNull (statuses);
+			Assert.True (statuses.ContainsKey ("foo"), "No status received for foo");
+			Assert.True (statuses.ContainsKey ("bar"), "No status received for bar");
+			Assert.Equal (Status.Added, statuses["foo"]);
+			Assert.Equal (Status.Added, statuses["bar"]);
 		}
 		
-		[Test]
+		[Fact]
 		public void TestCommit ()
 		{
 			string path = GetTemporaryPath ();
@@ -194,19 +188,19 @@ namespace Mercurial.Tests
 				File.WriteAllText (Path.Combine (path, "bar"), string.Empty);
 				client.Add (Path.Combine (path, "foo"));
 				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
+				Assert.True (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
 				
 				File.WriteAllText (Path.Combine (path, "foo"), "foo");
 				client.Add (Path.Combine (path, "bar"));
 				client.Commit ("Commit only bar", Path.Combine (path, "bar"));
-				Assert.That (!client.Status ().ContainsKey ("bar"), "Commit failed for bar");
-				Assert.That (client.Status ().ContainsKey ("foo"), "Committed unspecified file!");
-				Assert.AreEqual (Mercurial.Status.Modified, client.Status ()["foo"], "Committed unspecified file!");
-				Assert.AreEqual (2, client.Log (null).Count, "Unexpected revision count");
+				Assert.True (!client.Status ().ContainsKey ("bar"), "Commit failed for bar");
+				Assert.True (client.Status ().ContainsKey ("foo"), "Committed unspecified file!");
+				Assert.Equal (Status.Modified, client.Status ()["foo"]);
+				Assert.Equal (2, client.Log (null).Count);
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestLog ()
 		{
 			string path = GetTemporaryPath ();
@@ -219,11 +213,11 @@ namespace Mercurial.Tests
 				client.Commit ("1");
 				File.WriteAllText (file, "2");
 				client.Commit ("2");
-				Assert.AreEqual (2, client.Log (null).Count, "Unexpected revision count");
+				Assert.Equal(2, client.Log (null).Count);
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestAnnotate ()
 		{
 			string path = GetTemporaryPath ();
@@ -234,11 +228,11 @@ namespace Mercurial.Tests
 				File.WriteAllText (file, "1");
 				client.Add (file);
 				client.Commit ("1", null, false, false, null, null, null, null, "user");
-				Assert.AreEqual ("user 0: 1\n", client.Annotate (null, file));
+				Assert.Equal("user 0: 1\n", client.Annotate (null, file));
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestDiff ()
 		{
 			string path = GetTemporaryPath ();
@@ -255,13 +249,13 @@ namespace Mercurial.Tests
 			}
 			
 			string[] lines = diffText.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			Assert.AreEqual (6, lines.Length, "Unexpected diff length");
-			Assert.AreEqual ("@@ -1,1 +1,1 @@", lines [3]);
-			Assert.AreEqual ("-1", lines [4]);
-			Assert.AreEqual ("+2", lines [5]);
+			Assert.Equal (6, lines.Length);
+			Assert.Equal ("@@ -1,1 +1,1 @@", lines [3]);
+			Assert.Equal ("-1", lines [4]);
+			Assert.Equal ("+2", lines [5]);
 		}
 		
-		[Test]
+		[Fact]
 		public void TestExport ()
 		{
 			string path = GetTemporaryPath ();
@@ -278,13 +272,13 @@ namespace Mercurial.Tests
 				diffText = client.Export ("1");
 			}
 			string[] lines = diffText.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			Assert.AreEqual (13, lines.Length, "Unexpected diff length");
-			Assert.AreEqual ("@@ -1,1 +1,1 @@", lines [10]);
-			Assert.AreEqual ("-1", lines [11]);
-			Assert.AreEqual ("+2", lines [12]);
+			Assert.Equal (13, lines.Length);
+			Assert.Equal ("@@ -1,1 +1,1 @@", lines [10]);
+			Assert.Equal ("-1", lines [11]);
+			Assert.Equal ("+2", lines [12]);
 		}
 		
-		[Test]
+		[Fact]
 		public void TestForget ()
 		{
 			string path = GetTemporaryPath ();
@@ -297,18 +291,18 @@ namespace Mercurial.Tests
 				client.Add (file);
 				statuses = client.Status (null);
 				
-				Assert.IsNotNull (statuses);
-				Assert.That (statuses.ContainsKey ("foo"), "No status received for foo");
-				Assert.AreEqual (Status.Added, statuses ["foo"]);
+				Assert.NotNull (statuses);
+				Assert.True (statuses.ContainsKey ("foo"), "No status received for foo");
+				Assert.Equal (Status.Added, statuses ["foo"]);
 				
 				client.Forget (file);
 				statuses = client.Status ();
 			}
-			Assert.That (statuses.ContainsKey ("foo"), "foo is no longer known");
-			Assert.AreEqual (Status.Unknown, statuses ["foo"], "foo was not forgotten");
+			Assert.True (statuses.ContainsKey ("foo"), "foo is no longer known");
+			Assert.Equal (Status.Unknown, statuses["foo"]);
 		}
 		
-		[Test]
+		[Fact]
 		public void TestPull ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -328,15 +322,15 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to original repo
 				File.WriteAllText (file, "2");
 				firstClient.Commit ("2");
 				
 				// Pull from clone
-				Assert.IsTrue (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
-				Assert.AreEqual (2, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.True (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
+				Assert.Equal (2, secondClient.Log (null).Count);
 			} finally {
 				if (null != firstClient)
 					firstClient.Dispose ();
@@ -345,8 +339,7 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
-		[Ignore("Merge tool popup")]
+		[Fact(Skip = "Merge tool popup")]
 		public void TestMerge ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -366,7 +359,7 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to original repo
 				File.WriteAllText (file, "2\n");
@@ -377,12 +370,12 @@ namespace Mercurial.Tests
 				secondClient.Commit ("a");
 				
 				// Pull from clone
-				Assert.IsTrue (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
-				Assert.AreEqual (3, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.True (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
+				Assert.Equal (3, secondClient.Log (null).Count);
 				
-				Assert.AreEqual (2, secondClient.Heads ().Count (), "Unexpected number of heads");
+				Assert.Equal (2, secondClient.Heads ().Count());
 				
-				Assert.IsTrue (secondClient.Merge (null), "Merge unexpectedly resulted in unresolved files");
+				Assert.True (secondClient.Merge (null), "Merge unexpectedly resulted in unresolved files");
 			} finally {
 				if (null != firstClient)
 					firstClient.Dispose ();
@@ -391,7 +384,7 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestHeads ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -411,7 +404,7 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to original repo
 				File.WriteAllText (file, "2\n");
@@ -422,19 +415,20 @@ namespace Mercurial.Tests
 				secondClient.Commit ("a");
 				
 				// Pull from clone
-				Assert.IsTrue (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
-				Assert.AreEqual (3, secondClient.Log (null).Count, "Unexpected number of log entries");
-				
-				Assert.AreEqual (2, secondClient.Heads ().Count (), "Unexpected number of heads");
-			} finally {
+				Assert.True (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
+				Assert.Equal (3, secondClient.Log (null).Count);
+				Assert.Equal (2, secondClient.Heads ().Count());
+			}
+            finally
+            {
 				if (null != firstClient)
-					firstClient.Dispose ();
+					firstClient.Dispose();
 				if (null != secondClient)
-					secondClient.Dispose ();
+					secondClient.Dispose();
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestPush ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -454,17 +448,17 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to child repo
 				File.WriteAllText (Path.Combine (secondPath, "foo"), "1\na\n");
 				secondClient.Commit ("a");
 				
 				// Push to parent
-				Assert.IsTrue (secondClient.Push (firstPath, null), "Nothing to push");
+				Assert.True (secondClient.Push (firstPath, null), "Nothing to push");
 				
 				// Assert that the first repo now has two revisions in the log
-				Assert.AreEqual (2, firstClient.Log (null, firstPath).Count, "Known commandserver bug: server is out of sync");
+				Assert.Equal (2, firstClient.Log (null, firstPath).Count);
 			} finally {
 				if (null != firstClient)
 					firstClient.Dispose ();
@@ -473,7 +467,7 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestSummary ()
 		{
 			string path = GetTemporaryPath ();
@@ -488,10 +482,10 @@ namespace Mercurial.Tests
 				summary = client.Summary (false);
 			}
 			
-			Assert.IsTrue (summary.Contains ("branch: default"));
+			Assert.True (summary.Contains ("branch: default"));
 		}
 		
-		[Test]
+		[Fact]
 		public void TestIncoming ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -511,7 +505,7 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changesets to original repo
 				File.WriteAllText (file, "2");
@@ -520,8 +514,10 @@ namespace Mercurial.Tests
 				firstClient.Commit ("3");
 				
 				IList<Revision > incoming = secondClient.Incoming (null, null);
-				Assert.AreEqual (2, incoming.Count, "Unexpected number of incoming changesets");
-			} finally {
+				Assert.Equal (2, incoming.Count);
+			}
+            finally
+            {
 				if (null != firstClient)
 					firstClient.Dispose ();
 				if (null != secondClient)
@@ -529,7 +525,7 @@ namespace Mercurial.Tests
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void TestOutgoing ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -549,7 +545,7 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to original repo
 				File.WriteAllText (file, "2");
@@ -558,7 +554,7 @@ namespace Mercurial.Tests
 				firstClient.Commit ("3");
 				
 				IList<Revision > outgoing = firstClient.Outgoing (secondPath, null);
-				Assert.AreEqual (2, outgoing.Count, "Unexpected number of outgoing changesets");
+				Assert.Equal (2, outgoing.Count);
 			} finally {
 				if (null != firstClient)
 					firstClient.Dispose ();
@@ -567,39 +563,43 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestVersion ()
 		{
-			string path = GetTemporaryPath ();
+			string path = GetTemporaryPath();
 			CommandClient.Initialize (path, MercurialPath);
 			Regex versionRegex = new Regex (@"^\d\.\d\.\d.*$");
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				Match match = versionRegex.Match (client.Version);
-				Assert.IsNotNull (match, "Invalid version string");
-				Assert.That (match.Success, "Invalid version string");
-			}
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                Match match = versionRegex.Match(client.Version);
+                Assert.NotNull(match);
+                Assert.True(match.Success, "Invalid version string");
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestRevert ()
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
 			CommandClient.Initialize (path, MercurialPath);
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				File.WriteAllText (file, string.Empty);
-				client.Add (file);
-				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
-				
-				File.WriteAllText (file, "Modified!");
-				Assert.That (client.Status ().ContainsKey ("foo"), "Failed to modify file");
-				client.Revert (null, file);
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Revert failed for foo");
-			}
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                File.WriteAllText(file, string.Empty);
+                client.Add(file);
+                client.Commit("Commit all");
+                Assert.True(!client.Status().ContainsKey("foo"), "Default commit failed for foo");
+
+                File.WriteAllText(file, "Modified!");
+                Assert.True(client.Status().ContainsKey("foo"), "Failed to modify file");
+                client.Revert(null, file);
+                Assert.True(!client.Status().ContainsKey("foo"), "Revert failed for foo");
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestRename ()
 		{
 			string path = GetTemporaryPath ();
@@ -609,23 +609,23 @@ namespace Mercurial.Tests
 				File.WriteAllText (file, string.Empty);
 				client.Add (file);
 				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
+				Assert.True (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
 
 				client.Rename ("foo", "foo2");
 				IDictionary<string,Status > statuses = client.Status ();
 				statuses = client.Status (new[]{path}, quiet: false);
-				Assert.AreEqual (Status.Removed, statuses ["foo"], string.Format ("Incorrect status for foo: {0}", statuses ["foo"]));
-				Assert.AreEqual (Status.Added, statuses ["foo2"], string.Format ("Incorrect status for foo2: {0}", statuses ["foo2"]));
+				Assert.Equal (Status.Removed, statuses ["foo"]);
+				Assert.Equal (Status.Added, statuses ["foo2"]);
 				
 				client.Commit ("Commit rename");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Failed to rename file");
-				Assert.That (!client.Status ().ContainsKey ("foo2"), "Failed to rename file");
-				Assert.That (!File.Exists (file));
-				Assert.That (File.Exists (Path.Combine (path, "foo2")));
+				Assert.True (!client.Status ().ContainsKey ("foo"), "Failed to rename file");
+				Assert.True (!client.Status ().ContainsKey ("foo2"), "Failed to rename file");
+				Assert.True (!File.Exists (file));
+				Assert.True (File.Exists (Path.Combine (path, "foo2")));
 			}
 		}
 
-		[Test]
+		[Fact]
 		public void TestCat ()
 		{
 			string path = GetTemporaryPath ();
@@ -635,59 +635,61 @@ namespace Mercurial.Tests
 				File.WriteAllText (file, "foo\n");
 				client.Add (Path.Combine (path, "foo"));
 				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
+				Assert.True (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
 				
 				var contents = client.Cat (null, file);
-				Assert.AreEqual (1, contents.Count, "Unexpected size of file set");
-				Assert.That (contents.ContainsKey (file), "foo not in file set");
-				Assert.AreEqual ("foo\n", contents [file]);
+				Assert.Equal (1, contents.Count);
+				Assert.True (contents.ContainsKey (file), "foo not in file set");
+				Assert.Equal ("foo\n", contents [file]);
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestCatMore ()
 		{
-			string path = GetTemporaryPath ();
+			string path = GetTemporaryPath();
 			string file = Path.Combine (path, "foo");
-			Console.WriteLine (Environment.CurrentDirectory);
+
 			CommandClient.Initialize (path, MercurialPath);
             File.WriteAllText(file, "test text");
 
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				client.Add (file);
-				client.Commit ("Commit all");
-				Assert.That (!client.Status().ContainsKey ("foo"), "Default commit failed for foo");
-				
-				var contents = client.Cat(null, file);
-				Assert.AreEqual (1, contents.Count, "Unexpected size of file set");
-				Assert.That (contents.ContainsKey(file), "foo not in file set");
-				Assert.AreEqual (File.ReadAllText(file), contents[file]);
-			}
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                client.Add(file);
+                client.Commit("Commit all");
+                Assert.True(!client.Status().ContainsKey("foo"), "Default commit failed for foo");
+
+                var contents = client.Cat(null, file);
+                Assert.Equal(1, contents.Count);
+                Assert.True(contents.ContainsKey(file), "foo not in file set");
+                Assert.Equal(File.ReadAllText(file), contents[file]);
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestRemove ()
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
 			CommandClient.Initialize (path, MercurialPath);
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				File.WriteAllText (file, string.Empty);
-				client.Add (file);
-				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey (file), "Default commit failed for foo");
-				
-				client.Remove (file);
-				Assert.That (!File.Exists (file));
-				
-				IDictionary<string,Status > statuses = client.Status ();
-				Assert.That (statuses.ContainsKey ("foo"), "No status for foo");
-				Assert.AreEqual (Status.Removed, statuses ["foo"], string.Format ("Incorrect status for foo: {0}", statuses ["foo"]));
-			}
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                File.WriteAllText(file, string.Empty);
+                client.Add(file);
+                client.Commit("Commit all");
+                Assert.True(!client.Status().ContainsKey(file), "Default commit failed for foo");
+
+                client.Remove(file);
+                Assert.True(!File.Exists(file));
+
+                IDictionary<string, Status> statuses = client.Status();
+                Assert.True(statuses.ContainsKey("foo"), "No status for foo");
+                Assert.Equal(Status.Removed, statuses["foo"]);
+            }
 		}
 		
-		[Test]
-		[Ignore("Merge client popup")]
+		[Fact(Skip = "Merge client popup")]
 		public void TestResolve ()
 		{
 			string firstPath = GetTemporaryPath ();
@@ -707,7 +709,7 @@ namespace Mercurial.Tests
 				// Clone repo
 				CommandClient.Clone (source: firstPath, destination: secondPath, mercurialPath: MercurialPath);
 				secondClient = new CommandClient (secondPath, null, null, MercurialPath);
-				Assert.AreEqual (1, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.Equal (1, secondClient.Log (null).Count);
 				
 				// Add changeset to original repo
 				File.WriteAllText (file, "2\n");
@@ -718,17 +720,19 @@ namespace Mercurial.Tests
 				secondClient.Commit ("a");
 				
 				// Pull from clone
-				Assert.IsTrue (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
-				Assert.AreEqual (3, secondClient.Log (null).Count, "Unexpected number of log entries");
+				Assert.True (secondClient.Pull (null), "Pull unexpectedly resulted in unresolved files");
+				Assert.Equal (3, secondClient.Log (null).Count);
 				
-				Assert.AreEqual (2, secondClient.Heads ().Count (), "Unexpected number of heads");
+				Assert.Equal (2, secondClient.Heads ().Count());
 				
-				Assert.IsTrue (secondClient.Merge (null), "Merge unexpectedly resulted in unresolved files");
+				Assert.True (secondClient.Merge (null), "Merge unexpectedly resulted in unresolved files");
 				
 				IDictionary<string,bool > statuses = secondClient.Resolve (null, true, true, false, false, null, null, null);
-				Assert.That (statuses.ContainsKey ("foo"), "No merge status for foo");
-				Assert.AreEqual (true, statuses ["foo"], "Incorrect merge status for foo");
-			} finally {
+				Assert.True (statuses.ContainsKey ("foo"), "No merge status for foo");
+				Assert.Equal (true, statuses ["foo"]);
+			}
+            finally
+            {
 				if (null != firstClient)
 					firstClient.Dispose ();
 				if (null != secondClient)
@@ -736,53 +740,57 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestParents ()
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
 			CommandClient.Initialize (path, MercurialPath);
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				File.WriteAllText (file, string.Empty);
-				client.Add (file);
-				client.Commit ("Commit all");
-				Assert.That (!client.Status ().ContainsKey (file), "Default commit failed for foo");
-				
-				IEnumerable<Revision > parents = client.Parents (file, null);
-				Assert.AreEqual (1, parents.Count (), "Unexpected number of parents");
-			}
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                File.WriteAllText(file, string.Empty);
+                client.Add(file);
+                client.Commit("Commit all");
+                Assert.True(!client.Status().ContainsKey(file), "Default commit failed for foo");
+
+                IEnumerable<Revision> parents = client.Parents(file, null);
+                Assert.Equal(1, parents.Count());
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestStatus ()
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
 			string unknownFile = Path.Combine (path, "bar");
 			CommandClient.Initialize (path, MercurialPath);
-			using (var client = new CommandClient (path, null, null, MercurialPath)) {
-				File.WriteAllText (file, string.Empty);
-				File.WriteAllText (unknownFile, string.Empty);
-				client.Add (file);
-				IDictionary<string,Status> statuses = client.Status (path);
-				Assert.That (statuses.ContainsKey ("foo"), "foo not found in status");
-				Assert.That (statuses.ContainsKey ("bar"), "bar not found in status");
-				Assert.AreEqual (Status.Added, statuses ["foo"], "Incorrect status for foo");
-				Assert.AreEqual (statuses ["bar"], Status.Unknown, "Incorrect status for bar");
-				
-				statuses = client.Status (new[]{path}, quiet: true);
-				Assert.That (statuses.ContainsKey ("foo"), "foo not found in status");
-				Assert.AreEqual (Status.Added, statuses ["foo"], "Incorrect status for foo");
-				Assert.That (!statuses.ContainsKey ("bar"), "bar listed in quiet status output");
-				
-				statuses = client.Status (new[]{path}, onlyFilesWithThisStatus: Status.Added);
-				Assert.That (statuses.ContainsKey ("foo"), "foo not found in status");
-				Assert.AreEqual (Status.Added, statuses ["foo"], "Incorrect status for foo");
-				Assert.That (!statuses.ContainsKey ("bar"), "bar listed in added-only status output");
-			}
+
+            using (var client = new CommandClient(path, null, null, MercurialPath))
+            {
+                File.WriteAllText(file, string.Empty);
+                File.WriteAllText(unknownFile, string.Empty);
+                client.Add(file);
+                IDictionary<string, Status> statuses = client.Status(path);
+                Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
+                Assert.True(statuses.ContainsKey("bar"), "bar not found in status");
+                Assert.Equal(Status.Added, statuses["foo"]);
+                Assert.Equal(statuses["bar"], Status.Unknown);
+
+                statuses = client.Status(new[] { path }, quiet: true);
+                Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
+                Assert.Equal(Status.Added, statuses["foo"]);
+                Assert.True(!statuses.ContainsKey("bar"), "bar listed in quiet status output");
+
+                statuses = client.Status(new[] { path }, onlyFilesWithThisStatus: Status.Added);
+                Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
+                Assert.Equal(Status.Added, statuses["foo"]);
+                Assert.True(!statuses.ContainsKey("bar"), "bar listed in added-only status output");
+            }
 		}
 		
-		[Test]
+		[Fact]
 		public void TestRollback ()
 		{
 			string path = GetTemporaryPath ();
@@ -794,14 +802,14 @@ namespace Mercurial.Tests
 				client.Commit (file);
 				File.WriteAllText (file, file);
 				client.Commit (file);
-				Assert.AreEqual (2, client.Log (null).Count, "Unexpected history length");
-				Assert.That (client.Rollback ());
-				Assert.AreEqual (1, client.Log (null).Count, "Unexpected history length after rollback");
-				Assert.AreEqual (Mercurial.Status.Modified, client.Status (file) ["foo"], "Unexpected file status after rollback");
+				Assert.Equal (2, client.Log (null).Count);
+				Assert.True (client.Rollback ());
+				Assert.Equal (1, client.Log (null).Count);
+				Assert.Equal (Mercurial.Status.Modified, client.Status (file) ["foo"]);
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void VerifyArchiveTypeCoverage ()
 		{
 			foreach (ArchiveType type in Enum.GetValues (typeof (ArchiveType))) {
@@ -809,7 +817,7 @@ namespace Mercurial.Tests
 			}
 		}
 		
-		[Test]
+		[Fact]
 		public void TestArchive ()
 		{
 			string path = GetTemporaryPath ();
@@ -821,9 +829,9 @@ namespace Mercurial.Tests
 				client.Add (file);
 				client.Commit (file);
 				client.Archive (archivePath);
-				Assert.That (Directory.Exists (archivePath));
-				Assert.That (!Directory.Exists (Path.Combine (archivePath, ".hg")));
-				Assert.That (File.Exists (Path.Combine (archivePath, "foo")));
+				Assert.True (Directory.Exists (archivePath));
+				Assert.True (!Directory.Exists (Path.Combine (archivePath, ".hg")));
+				Assert.True (File.Exists (Path.Combine (archivePath, "foo")));
 			}
 		}
 
