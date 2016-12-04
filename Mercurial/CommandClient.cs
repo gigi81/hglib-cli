@@ -36,9 +36,9 @@ namespace Mercurial
 	/// </summary>
 	public class CommandClient: IDisposable
 	{
-		static readonly string DefaultMercurialPath = "hg";
-		static readonly string MercurialEncodingKey = "HGENCODING";
-		static readonly int MercurialHeaderLength = 5;
+		const string DefaultMercurialPath = "hg";
+		const string MercurialEncodingKey = "HGENCODING";
+		const int MercurialHeaderLength = 5;
 		
 		Process commandServer = null;
 		

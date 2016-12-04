@@ -49,6 +49,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Mercurial\Mercurial.csproj" />
   </ItemGroup>
+  <PropertyGroup Label="Configuration">
+    <OutputPath>bin\</OutputPath>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
