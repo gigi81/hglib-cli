@@ -160,14 +160,14 @@ namespace Mercurial.Client.Tests
 		public void TestAdd ()
 		{
 			string path = GetTemporaryPath ();
-			IDictionary<string,Status > statuses = null;
+			IDictionary<string, FileStatus> statuses = null;
 			
 			CommandClient.Initialize (path, MercurialPath);
 			using (var client = new CommandClient (path, null, null, MercurialPath)) {
 				File.WriteAllText (Path.Combine (path, "foo"), string.Empty);
 				File.WriteAllText (Path.Combine (path, "bar"), string.Empty);
 				client.Add (Path.Combine (path, "foo"), Path.Combine (path, "bar"));
-				statuses = client.Status (null);
+				statuses = client.Status(null);
 			}
 			
 			Assert.NotNull (statuses);
@@ -282,13 +282,13 @@ namespace Mercurial.Client.Tests
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
-			IDictionary<string,Status > statuses = null;
+			IDictionary<string, FileStatus> statuses = null;
 			
 			CommandClient.Initialize (path, MercurialPath);
 			using (var client = new CommandClient (path, null, null, MercurialPath)) {
 				File.WriteAllText (file, string.Empty);
 				client.Add (file);
-				statuses = client.Status (null);
+				statuses = client.Status(null);
 				
 				Assert.NotNull (statuses);
 				Assert.True (statuses.ContainsKey ("foo"), "No status received for foo");
@@ -578,7 +578,7 @@ namespace Mercurial.Client.Tests
 		}
 		
 		[Fact]
-		public void TestRevert ()
+		public void TestRevert()
 		{
 			string path = GetTemporaryPath ();
 			string file = Path.Combine (path, "foo");
@@ -611,7 +611,7 @@ namespace Mercurial.Client.Tests
 				Assert.True (!client.Status ().ContainsKey ("foo"), "Default commit failed for foo");
 
 				client.Rename ("foo", "foo2");
-				IDictionary<string,Status > statuses = client.Status ();
+				var statuses = client.Status();
 				statuses = client.Status (new[]{path}, quiet: false);
 				Assert.Equal (FileStatus.Removed, statuses ["foo"]);
 				Assert.Equal (FileStatus.Added, statuses ["foo2"]);
@@ -682,7 +682,7 @@ namespace Mercurial.Client.Tests
                 client.Remove(file);
                 Assert.True(!File.Exists(file));
 
-                IDictionary<string, Status> statuses = client.Status();
+                var statuses = client.Status();
                 Assert.True(statuses.ContainsKey("foo"), "No status for foo");
                 Assert.Equal(FileStatus.Removed, statuses["foo"]);
             }
@@ -771,7 +771,7 @@ namespace Mercurial.Client.Tests
                 File.WriteAllText(file, string.Empty);
                 File.WriteAllText(unknownFile, string.Empty);
                 client.Add(file);
-                IDictionary<string, Status> statuses = client.Status(path);
+                var statuses = client.Status(path);
                 Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
                 Assert.True(statuses.ContainsKey("bar"), "bar not found in status");
                 Assert.Equal(FileStatus.Added, statuses["foo"]);
@@ -804,18 +804,10 @@ namespace Mercurial.Client.Tests
 				Assert.Equal (2, client.Log (null).Count);
 				Assert.True (client.Rollback ());
 				Assert.Equal (1, client.Log (null).Count);
-				Assert.Equal (FileFileStatus.Modified, client.Status (file) ["foo"]);
+				Assert.Equal (FileStatus.Modified, client.Status (file) ["foo"]);
 			}
 		}
-		
-		[Fact]
-		public void VerifyArchiveTypeCoverage ()
-		{
-			foreach (ArchiveType type in Enum.GetValues (typeof (ArchiveType))) {
-				Console.WriteLine (Mercurial.CommandClient.archiveTypeToArgumentStringMap [type]);
-			}
-		}
-		
+
 		[Fact]
 		public void TestArchive ()
 		{

@@ -1497,7 +1497,7 @@ namespace Mercurial.Client
 			return (result.Result == 0);
 		}
 		
-		public static readonly Dictionary<ArchiveType,string> archiveTypeToArgumentStringMap = new Dictionary<ArchiveType,string>()
+		private static readonly Dictionary<ArchiveType, string> ArchiveTypeToArgumentMapping = new Dictionary<ArchiveType,string>()
         {
 			{ ArchiveType.Default, string.Empty },
 			{ ArchiveType.Directory, "files" },
@@ -1517,7 +1517,7 @@ namespace Mercurial.Client
 			var arguments = new List<string> (){ "archive" };
 			AddNonemptyStringArgument (arguments, revision, "--rev");
 			AddNonemptyStringArgument (arguments, prefix, "--prefix");
-			AddNonemptyStringArgument (arguments, archiveTypeToArgumentStringMap [type], "--type");
+			AddNonemptyStringArgument (arguments, ArchiveTypeToArgumentMapping [type], "--type");
 			AddArgumentIf (arguments, !decode, "--no-decode");
 			AddArgumentIf (arguments, recurseSubRepositories, "--subrepos");
 			AddNonemptyStringArgument (arguments, includePattern, "--include");
