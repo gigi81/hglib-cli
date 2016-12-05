@@ -143,25 +143,31 @@ namespace Mercurial.Client
 						accumulator => accumulator.ToString ()
 				));
 			}
-			
-			var info = new ProcessStartInfo(mercurialPath, arguments.ToString ().Trim ());
-			//TODO:
-			//if (null != encoding)
-			//    info.EnvironmentVariables[MercurialEncodingKey] = encoding;
-			info.RedirectStandardInput = true;
-			info.RedirectStandardOutput = true;
-			info.RedirectStandardError = true;
-			info.UseShellExecute = false;
-			info.CreateNoWindow = true;
-			
-			try {
+
+            var info = new ProcessStartInfo(mercurialPath, arguments.ToString().Trim())
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            //TODO:
+            //if (null != encoding)
+            //    info.EnvironmentVariables[MercurialEncodingKey] = encoding;
+
+            try
+            {
 				// Console.WriteLine ("Launching command server with: {0} {1}", mercurialPath, arguments.ToString ());
 				commandServer = Process.Start (info);
-			} catch (Exception ex) {
-				throw new ServerException ("Error launching mercurial command server", ex);
+            }
+            catch (Exception ex)
+            {
+				throw new ServerException("Error launching mercurial command server", ex);
 			}
 			
-			Handshake ();
+			Handshake();
 		}
 		
 		/// <summary>
@@ -311,7 +317,7 @@ namespace Mercurial.Client
 		/// <returns>
 		/// A dictionary mapping each file to its Status
 		/// </returns>
-		public IDictionary<string,Status> Status (params string[] fileparams)
+		public IDictionary<string,FileStatus> Status (params string[] fileparams)
 		{
 			return Status (files: fileparams);
 		}
@@ -346,12 +352,12 @@ namespace Mercurial.Client
 		/// <returns>
 		/// A dictionary mapping each file to its Status
 		/// </returns>
-		public IDictionary<string,Status> Status (IEnumerable<string> files, bool quiet=false, Status onlyFilesWithThisStatus=Mercurial.Status.Default, bool showCopiedSources=false, string fromRevision=null, string onlyRevision=null, string includePattern=null, string excludePattern=null, bool recurseSubRepositories=false)
+		public IDictionary<string,FileStatus> Status (IEnumerable<string> files, bool quiet=false, FileStatus onlyFilesWithThisStatus = FileStatus.Default, bool showCopiedSources=false, string fromRevision=null, string onlyRevision=null, string includePattern=null, string excludePattern=null, bool recurseSubRepositories=false)
 		{
 			var arguments = new List<string> (){ "status" };
 			
 			AddArgumentIf (arguments, quiet, "--quiet");
-			if (Mercurial.Status.Default != onlyFilesWithThisStatus) {
+			if (FileStatus.Default != onlyFilesWithThisStatus) {
 				arguments.Add (ArgumentForStatus (onlyFilesWithThisStatus));
 			}
 			AddArgumentIf (arguments, showCopiedSources, "--copies");
@@ -367,7 +373,7 @@ namespace Mercurial.Client
 			var result = GetCommandOutput(arguments, null);
 			ThrowOnFail (result, 0, "Error retrieving status");
 			
-			return result.Output.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).Aggregate(new Dictionary<string,Status> (), (dict,line) =>
+			return result.Output.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).Aggregate(new Dictionary<string,FileStatus> (), (dict,line) =>
             {
 				if (2 < line.Length)
 					dict[line.Substring (2)] = ParseStatus (line.Substring (0, 1));
@@ -1987,38 +1993,39 @@ namespace Mercurial.Client
 		/// <summary>
 		/// Get a string argument representing a Status
 		/// </summary>
-		internal static string ArgumentForStatus (Mercurial.Status status)
+		internal static string ArgumentForStatus (FileStatus status)
 		{
-			switch (status) {
-			case Mercurial.Status.Added:
-				return "--added";
-			case Mercurial.Status.Clean:
-				return "--clean";
-			case Mercurial.Status.Ignored:
-				return "--ignored";
-			case Mercurial.Status.Modified:
-				return "--modified";
-			case Mercurial.Status.Removed:
-				return "--removed";
-			case Mercurial.Status.Unknown:
-				return "--unknown";
-			case Mercurial.Status.Missing:
-				return "--deleted";
-			case Mercurial.Status.All:
-				return "--all";
-			default:
-				return string.Empty;
+			switch (status)
+            {
+			    case FileStatus.Added:
+				    return "--added";
+			    case FileStatus.Clean:
+				    return "--clean";
+			    case FileStatus.Ignored:
+				    return "--ignored";
+			    case FileStatus.Modified:
+				    return "--modified";
+			    case FileStatus.Removed:
+				    return "--removed";
+			    case FileStatus.Unknown:
+				    return "--unknown";
+			    case FileStatus.Missing:
+				    return "--deleted";
+			    case FileStatus.All:
+				    return "--all";
+			    default:
+				    return string.Empty;
 			}
 		}
 		
 		/// <summary>
 		/// Parse a status from its indicator text
 		/// </summary>
-		public static Mercurial.Status ParseStatus (string input)
+		public static FileStatus ParseStatus (string input)
 		{
-			if (Enum.GetValues (typeof(Mercurial.Status)).Cast<Mercurial.Status> ().Any (x => ((char)x) == input[0]))
-				return (Mercurial.Status)(input [0]);
-			return Mercurial.Status.Clean;
+			if (Enum.GetValues (typeof(FileStatus)).Cast<FileStatus> ().Any (x => ((char)x) == input[0]))
+				return (FileStatus)(input [0]);
+			return FileStatus.Clean;
 		}
 				
 		#endregion

@@ -173,8 +173,8 @@ namespace Mercurial.Client.Tests
 			Assert.NotNull (statuses);
 			Assert.True (statuses.ContainsKey ("foo"), "No status received for foo");
 			Assert.True (statuses.ContainsKey ("bar"), "No status received for bar");
-			Assert.Equal (Status.Added, statuses["foo"]);
-			Assert.Equal (Status.Added, statuses["bar"]);
+			Assert.Equal(FileStatus.Added, statuses["foo"]);
+			Assert.Equal(FileStatus.Added, statuses["bar"]);
 		}
 		
 		[Fact]
@@ -194,7 +194,7 @@ namespace Mercurial.Client.Tests
 				client.Commit ("Commit only bar", Path.Combine (path, "bar"));
 				Assert.True (!client.Status ().ContainsKey ("bar"), "Commit failed for bar");
 				Assert.True (client.Status ().ContainsKey ("foo"), "Committed unspecified file!");
-				Assert.Equal (Status.Modified, client.Status ()["foo"]);
+				Assert.Equal (FileStatus.Modified, client.Status ()["foo"]);
 				Assert.Equal (2, client.Log (null).Count);
 			}
 		}
@@ -292,13 +292,13 @@ namespace Mercurial.Client.Tests
 				
 				Assert.NotNull (statuses);
 				Assert.True (statuses.ContainsKey ("foo"), "No status received for foo");
-				Assert.Equal (Status.Added, statuses ["foo"]);
+				Assert.Equal (FileStatus.Added, statuses ["foo"]);
 				
 				client.Forget (file);
 				statuses = client.Status ();
 			}
 			Assert.True (statuses.ContainsKey ("foo"), "foo is no longer known");
-			Assert.Equal (Status.Unknown, statuses["foo"]);
+			Assert.Equal (FileStatus.Unknown, statuses["foo"]);
 		}
 		
 		[Fact]
@@ -613,8 +613,8 @@ namespace Mercurial.Client.Tests
 				client.Rename ("foo", "foo2");
 				IDictionary<string,Status > statuses = client.Status ();
 				statuses = client.Status (new[]{path}, quiet: false);
-				Assert.Equal (Status.Removed, statuses ["foo"]);
-				Assert.Equal (Status.Added, statuses ["foo2"]);
+				Assert.Equal (FileStatus.Removed, statuses ["foo"]);
+				Assert.Equal (FileStatus.Added, statuses ["foo2"]);
 				
 				client.Commit ("Commit rename");
 				Assert.True (!client.Status ().ContainsKey ("foo"), "Failed to rename file");
@@ -684,7 +684,7 @@ namespace Mercurial.Client.Tests
 
                 IDictionary<string, Status> statuses = client.Status();
                 Assert.True(statuses.ContainsKey("foo"), "No status for foo");
-                Assert.Equal(Status.Removed, statuses["foo"]);
+                Assert.Equal(FileStatus.Removed, statuses["foo"]);
             }
 		}
 		
@@ -774,17 +774,17 @@ namespace Mercurial.Client.Tests
                 IDictionary<string, Status> statuses = client.Status(path);
                 Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
                 Assert.True(statuses.ContainsKey("bar"), "bar not found in status");
-                Assert.Equal(Status.Added, statuses["foo"]);
-                Assert.Equal(statuses["bar"], Status.Unknown);
+                Assert.Equal(FileStatus.Added, statuses["foo"]);
+                Assert.Equal(statuses["bar"], FileStatus.Unknown);
 
                 statuses = client.Status(new[] { path }, quiet: true);
                 Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
-                Assert.Equal(Status.Added, statuses["foo"]);
+                Assert.Equal(FileStatus.Added, statuses["foo"]);
                 Assert.True(!statuses.ContainsKey("bar"), "bar listed in quiet status output");
 
-                statuses = client.Status(new[] { path }, onlyFilesWithThisStatus: Status.Added);
+                statuses = client.Status(new[] { path }, onlyFilesWithThisStatus: FileStatus.Added);
                 Assert.True(statuses.ContainsKey("foo"), "foo not found in status");
-                Assert.Equal(Status.Added, statuses["foo"]);
+                Assert.Equal(FileStatus.Added, statuses["foo"]);
                 Assert.True(!statuses.ContainsKey("bar"), "bar listed in added-only status output");
             }
 		}
@@ -804,7 +804,7 @@ namespace Mercurial.Client.Tests
 				Assert.Equal (2, client.Log (null).Count);
 				Assert.True (client.Rollback ());
 				Assert.Equal (1, client.Log (null).Count);
-				Assert.Equal (Mercurial.Status.Modified, client.Status (file) ["foo"]);
+				Assert.Equal (FileFileStatus.Modified, client.Status (file) ["foo"]);
 			}
 		}
 		
