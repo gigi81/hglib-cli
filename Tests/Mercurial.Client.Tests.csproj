@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
     <DebugType>portable</DebugType>
-    <AssemblyName>Mercurial.Tests</AssemblyName>
+    <AssemblyName>Mercurial.Client.Tests</AssemblyName>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -47,11 +47,12 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mercurial\Mercurial.csproj" />
+    <ProjectReference Include="..\Mercurial\Mercurial.Client.csproj" />
   </ItemGroup>
   <PropertyGroup Label="Configuration">
     <OutputPath>bin\</OutputPath>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <RootNamespace>Mercurial.Client.Tests</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>

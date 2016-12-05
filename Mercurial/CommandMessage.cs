@@ -22,7 +22,7 @@
 using System;
 using System.Text;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// Represents a message from the command server

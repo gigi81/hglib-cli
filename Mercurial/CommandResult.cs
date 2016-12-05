@@ -22,7 +22,7 @@
 using System;
 using System.IO;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// Represents the result of a command

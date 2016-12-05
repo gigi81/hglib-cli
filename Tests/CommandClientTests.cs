@@ -25,10 +25,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
-
 using Xunit;
 
-namespace Mercurial.Tests
+namespace Mercurial.Client.Tests
 {
 	public class CommandClientTests : IDisposable
 	{

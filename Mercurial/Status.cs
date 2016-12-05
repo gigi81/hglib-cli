@@ -21,7 +21,7 @@
 
 using System;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// Represents a mercurial status

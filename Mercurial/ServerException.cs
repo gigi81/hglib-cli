@@ -21,7 +21,7 @@
 
 using System;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// An exception communicating with the command server

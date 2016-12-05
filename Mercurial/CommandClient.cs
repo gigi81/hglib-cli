@@ -29,7 +29,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// Client class for the Merurial command server
@@ -58,33 +58,40 @@ namespace Mercurial
 		/// <remarks>
 		/// Equivalent to "key = value" from hgrc or `hg showconfig`
 		/// </remarks>
-		public IDictionary<string,string> Configuration {
-			get {
+		public IDictionary<string,string> Configuration
+        {
+			get
+            {
 				if (null != _configuration)
 					return _configuration;
 				
-				CommandResult result = GetCommandOutput (new[]{"showconfig"}, null);
-				if (0 == result.Result) {
-					return _configuration = ParseDictionary (result.Output, new[]{"="});
-				}
-				return null;
+				var result = GetCommandOutput (new[]{"showconfig"}, null);
+                if (0 != result.Result)
+                    return null;
+
+			    return _configuration = ParseDictionary (result.Output, new[]{"="});
 			}
 		}
+
 		Dictionary<string,string> _configuration;
 		
 		/// <summary>
 		/// The root directory of the current repository
 		/// </summary>
-		public string Root {
-			get {
-				if (null != _root) return _root;
-				return _root = GetCommandOutput (new[]{"root"}, null).Output.TrimEnd ();
+		public string Root
+        {
+			get
+            {
+				return _root ?? (_root = GetCommandOutput(new[]{"root"}, null).Output.TrimEnd());
 			}
 		}
+
 		string _root;
 		
-		public string Version {
-			get {
+		public string Version
+        {
+			get
+            {
 				if (null != _version)
 					return _version;
 				
@@ -137,7 +144,7 @@ namespace Mercurial
 				));
 			}
 			
-			var info = new ProcessStartInfo (mercurialPath, arguments.ToString ().Trim ());
+			var info = new ProcessStartInfo(mercurialPath, arguments.ToString ().Trim ());
 			//TODO:
 			//if (null != encoding)
 			//    info.EnvironmentVariables[MercurialEncodingKey] = encoding;
@@ -166,15 +173,18 @@ namespace Mercurial
 		/// <param name='destination'>
 		/// The directory in which to create the repository
 		/// </param>
-		public static void Initialize (string destination, string mercurialPath)
+		public static void Initialize(string destination, string mercurialPath)
 		{
 			if (string.IsNullOrEmpty (mercurialPath))
 				mercurialPath = DefaultMercurialPath;
-			ProcessStartInfo psi =  new ProcessStartInfo (mercurialPath, string.Format ("init {0}", destination)) {
+
+			var psi =  new ProcessStartInfo(mercurialPath, string.Format ("init {0}", destination))
+            {
 				UseShellExecute = false,
 				CreateNoWindow = true,
 			};
-			Process hg = Process.Start (psi);
+
+			var hg = Process.Start(psi);
 			hg.WaitForExit (5000);
 			if (!hg.HasExited || 0 != hg.ExitCode)
 				throw new CommandException (string.Format ("Error creating repository at {0}", destination));
@@ -214,7 +224,7 @@ namespace Mercurial
 			CloneInternal (source, destination, updateWorkingCopy, updateToRevision, cloneToRevision, onlyCloneBranch, forcePullProtocol, compressData, mercurialPath);
 		}
 
-		static void CloneInternal (string source, string destination, bool updateWorkingCopy, string updateToRevision, string cloneToRevision, string onlyCloneBranch, bool forcePullProtocol, bool compressData, string mercurialPath)
+		private static void CloneInternal (string source, string destination, bool updateWorkingCopy, string updateToRevision, string cloneToRevision, string onlyCloneBranch, bool forcePullProtocol, bool compressData, string mercurialPath)
 		{
 			if (string.IsNullOrEmpty (source)) 
 				throw new ArgumentException ("Source must not be empty.", "source");
@@ -233,14 +243,16 @@ namespace Mercurial
 			arguments.Add (source);
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (destination), destination);
 			
-			ProcessStartInfo psi = new ProcessStartInfo (mercurialPath, string.Join (" ", arguments.ToArray ())) {
+			var psi = new ProcessStartInfo(mercurialPath, string.Join (" ", arguments.ToArray()))
+            {
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				UseShellExecute = false,
 				CreateNoWindow = true,
 			};
-			Process hg = Process.Start (psi);
-			hg.WaitForExit ();
+
+			var hg = Process.Start(psi);
+			hg.WaitForExit();
 			
 			if (0 != hg.ExitCode)
 				throw new CommandException (string.Format ("Error cloning {0}: {1}", source, hg.StandardOutput.ReadToEnd () + hg.StandardError.ReadToEnd ()));
@@ -352,13 +364,14 @@ namespace Mercurial
 			if (null != files)
 				arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput(arguments, null);
 			ThrowOnFail (result, 0, "Error retrieving status");
 			
-			return result.Output.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).Aggregate (new Dictionary<string,Status> (), (dict,line) => {
-				if (2 < line.Length) {
-					dict [line.Substring (2)] = ParseStatus (line.Substring (0, 1));
-				}
+			return result.Output.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).Aggregate(new Dictionary<string,Status> (), (dict,line) =>
+            {
+				if (2 < line.Length)
+					dict[line.Substring (2)] = ParseStatus (line.Substring (0, 1));
+
 				return dict;
 			});
 		}
@@ -422,9 +435,9 @@ namespace Mercurial
 			if (null != files)
 				arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (1 != result.Result && 0 != result.Result) {
-				ThrowOnFail (result, 0, "Error committing");
+				ThrowOnFail(result, 0, "Error committing");
 			}
 		}
 		
@@ -530,8 +543,8 @@ namespace Mercurial
 			if (null != files)
 				arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
-			ThrowOnFail (result, 0, "Error getting log");
+			var result = GetCommandOutput (arguments, null);
+			ThrowOnFail(result, 0, "Error getting log");
 			
 			// Console.WriteLine (result.Output);
 			
@@ -594,7 +607,7 @@ namespace Mercurial
 			}
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (source), source);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (0 != result.Result && 1 != result.Result)
 				throw new CommandException ("Error getting incoming", result);
 			
@@ -650,7 +663,7 @@ namespace Mercurial
 			}
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (source), source);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, "Error getting incoming");
 			
 			try
@@ -704,7 +717,7 @@ namespace Mercurial
 			if (null != revisions)
 				arguments.AddRange (revisions);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (1 != result.Result && 0 != result.Result) {
 				ThrowOnFail (result, 0, "Error getting heads");
 			}
@@ -795,7 +808,7 @@ namespace Mercurial
 			if (null != files)
 				arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, "Error annotating");
 			
 			return result.Output;
@@ -892,7 +905,7 @@ namespace Mercurial
 			
 			if (null != files) arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, "Error getting diff");
 			
 			return result.Output;
@@ -955,7 +968,7 @@ namespace Mercurial
 			AddArgumentIf (arguments, !showDates, "--nodates");
 			arguments.AddRange (revisions);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, string.Format ("Error exporting {0}", string.Join (",", revisions.ToArray ())));
 			
 			return result.Output;
@@ -1030,7 +1043,7 @@ namespace Mercurial
 			AddArgumentIf (arguments, dryRun, "--preview");
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (revision), revision);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (0 != result.Result && 1 != result.Result) {
 				ThrowOnFail (result, 0, "Error merging");
 			}
@@ -1069,7 +1082,7 @@ namespace Mercurial
 			AddNonemptyStringArgument (arguments, branch, "--branch");
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (source), source);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (0 != result.Result && 1 != result.Result) {
 				ThrowOnFail (result, 0, "Error pulling");
 			}
@@ -1107,7 +1120,7 @@ namespace Mercurial
 			AddArgumentIf (arguments, allowNewBranch, "--new-branch");
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (destination), destination);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (1 != result.Result && 0 != result.Result) {
 				ThrowOnFail (result, 0, "Error pushing");
 			}
@@ -1141,7 +1154,7 @@ namespace Mercurial
 			AddFormattedDateArgument (arguments, toDate, "--date");
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (revision), revision);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			if (0 != result.Result && 1 != result.Result) {
 				ThrowOnFail (result, 0, "Error updating");
 			}
@@ -1162,7 +1175,7 @@ namespace Mercurial
 		{
 			var arguments = new List<string> (){ "summary" };
 			AddArgumentIf (arguments, remote, "--remote");
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			ThrowOnFail (result, 0, "Error getting summary");
 			return result.Output;
 		}
@@ -1418,7 +1431,7 @@ namespace Mercurial
 			if (null != files)
 				arguments.AddRange (files);
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			var statuses = result.Output.Split (new[]{'\n'}, StringSplitOptions.RemoveEmptyEntries).Aggregate (new Dictionary<string,bool> (),
 				(dict,line) => {
 					dict [line.Substring (2).Trim ()] = (line [0] == 'R');
@@ -1452,7 +1465,7 @@ namespace Mercurial
 			var arguments = new List<string> (){ "paths" };
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (name), name);
 			
-			CommandResult result = ThrowOnFail (GetCommandOutput (arguments, null), 0, "Error getting paths");
+			var result = ThrowOnFail (GetCommandOutput (arguments, null), 0, "Error getting paths");
 			return result.Output.Split (new[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).Aggregate (new Dictionary<string,string>(), (dict,line) => {
 				var tokens = line.Split (new[]{'='}, 2);
 				dict[tokens[0].Trim ()] = tokens[1].Trim ();
@@ -1474,11 +1487,12 @@ namespace Mercurial
 			var arguments = new List<string> (){ "rollback" };
 			AddArgumentIf (arguments, force, "--force");
 			
-			CommandResult result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput (arguments, null);
 			return (result.Result == 0);
 		}
 		
-		public static readonly Dictionary<ArchiveType,string> archiveTypeToArgumentStringMap = new Dictionary<ArchiveType,string> () {
+		public static readonly Dictionary<ArchiveType,string> archiveTypeToArgumentStringMap = new Dictionary<ArchiveType,string>()
+        {
 			{ ArchiveType.Default, string.Empty },
 			{ ArchiveType.Directory, "files" },
 			{ ArchiveType.Tar, "tar" },

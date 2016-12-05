@@ -25,7 +25,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Collections.Generic;
 
-namespace Mercurial
+namespace Mercurial.Client
 {
 	/// <summary>
 	/// Represents a mercurial revision
