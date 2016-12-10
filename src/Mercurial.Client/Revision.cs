@@ -71,16 +71,22 @@ namespace Mercurial.Client
 		/// <summary>
 		/// Parse an xml log into a list of revisions
 		/// </summary>
-		internal static IList<Revision> ParseRevisionsFromLog(Stream output)
+		internal static IList<Revision> ParseRevisionsFromLog(string output)
 		{
-			var document = XDocument.Load(output);
 			var revisions = new List<Revision>();
+			if(String.IsNullOrWhiteSpace(output))
+				return revisions;
 
-			foreach (var node in document.Descendants("log").Descendants("logentry")) {
-				revisions.Add (new Revision (node));
+			using(var reader = new StringReader(output))
+			{
+				var document = XDocument.Load(reader);
+
+				foreach (var node in document.Descendants("log").Descendants("logentry")) {
+					revisions.Add (new Revision (node));
+				}
+				
+				return revisions;
 			}
-			
-			return revisions;
 		}
 	}
 }

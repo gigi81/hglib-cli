@@ -29,8 +29,8 @@ namespace Mercurial.Client
 	/// </summary>
 	public class CommandResult
 	{
-		private readonly Stream _output;
-		private readonly Stream _error;
+		private readonly string _output;
+		private readonly string _error;
 		private readonly int _result;
 
 		/// <summary>
@@ -38,23 +38,13 @@ namespace Mercurial.Client
 		/// </summary>
 		public string Output
 		{
-			get { return GetString(_output); }
-		}
-
-		public Stream OutputStream
-		{
 			get { return _output; }
 		}
-		
+
 		/// <summary>
 		/// The error output from the command
 		/// </summary>
 		public string Error
-		{
-			get { return GetString(_error); }
-		}
-
-		public Stream ErrorStream
 		{
 			get { return _error; }
 		}
@@ -66,13 +56,15 @@ namespace Mercurial.Client
 
 		internal CommandResult (Stream output, Stream error, int result)
 		{
-			_output = output;
-			_error = error;
+			_output = GetString(output);
+			_error = GetString(error);
 			_result = result;
 		}
 
 		private static string GetString(Stream stream)
 		{
+			stream.Position = 0;
+			
 			using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
 			{
 				return reader.ReadToEnd();

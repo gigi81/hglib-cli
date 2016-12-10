@@ -121,7 +121,7 @@ namespace Mercurial.Client
 		/// <param name='configs'>
 		/// A configuration dictionary to be passed to the command server
 		/// </param>
-		public CommandClient (string path, string encoding, IDictionary<string,string> configs, string mercurialPath)
+		public CommandClient (string path, string encoding = null, IDictionary<string,string> configs = null, string mercurialPath = null)
 		{
 			if (string.IsNullOrEmpty (path))
 				throw new ArgumentException ("Path cannot be empty", "path");
@@ -556,7 +556,7 @@ namespace Mercurial.Client
 			
 			try
 			{
-				return Revision.ParseRevisionsFromLog(result.OutputStream);
+				return Revision.ParseRevisionsFromLog(result.Output);
 			}
 			catch (XmlException ex)
 			{
@@ -618,7 +618,7 @@ namespace Mercurial.Client
 				throw new CommandException ("Error getting incoming", result);
 			
 			try {
-				return Revision.ParseRevisionsFromLog(result.OutputStream);
+				return Revision.ParseRevisionsFromLog(result.Output);
 			} catch (XmlException ex) {
 				throw new CommandException ("Error getting incoming", ex);
 			}
@@ -674,7 +674,7 @@ namespace Mercurial.Client
 			
 			try
 			{
-				return Revision.ParseRevisionsFromLog(result.OutputStream);
+				return Revision.ParseRevisionsFromLog(result.Output);
 			}
 			catch (XmlException ex)
 			{
@@ -727,9 +727,11 @@ namespace Mercurial.Client
 			if (1 != result.Result && 0 != result.Result) {
 				ThrowOnFail (result, 0, "Error getting heads");
 			}
-			
+
+			Console.WriteLine(result.Output);
+
 			try {
-				return Revision.ParseRevisionsFromLog(result.OutputStream);
+				return Revision.ParseRevisionsFromLog(result.Output);
 			} catch (XmlException ex) {
 				throw new CommandException ("Error getting heads", ex);
 			}
@@ -1463,7 +1465,7 @@ namespace Mercurial.Client
 			AddArgumentIf (arguments, !string.IsNullOrEmpty (file), file);
 			
 			var result = ThrowOnFail(GetCommandOutput (arguments, null), 0, "Error getting parents");
-			return Revision.ParseRevisionsFromLog(result.OutputStream);
+			return Revision.ParseRevisionsFromLog(result.Output);
 		}
 		
 		public IDictionary<string,string> Paths (string name=null)
@@ -1656,11 +1658,12 @@ namespace Mercurial.Client
 			if (null == command || 0 == command.Count)
 				throw new ArgumentException ("Command must not be empty", "command");
 			
-			byte[] commandBuffer = UTF8Encoding.UTF8.GetBytes ("runcommand\n");
+			byte[] commandBuffer = UTF8Encoding.UTF8.GetBytes("runcommand\n");
 			byte[] argumentBuffer;
 			
-			argumentBuffer = command.Aggregate (new List<byte> (), (bytes,arg) => {
-				bytes.AddRange (UTF8Encoding.UTF8.GetBytes (arg));
+			argumentBuffer = command.Aggregate (new List<byte> (), (bytes,arg) =>
+			{
+				bytes.AddRange(UTF8Encoding.UTF8.GetBytes(arg));
 				bytes.Add (0);
 				return bytes;
 			},
@@ -1679,10 +1682,11 @@ namespace Mercurial.Client
 				commandServer.StandardInput.BaseStream.Flush ();
 			
 				try {
-					while (true) {
+					while (true)
+					{
 						var message = ReadMessage();
 						if (CommandChannel.Result == message.Channel)
-							return ReadInt (message.Buffer, 0);
+							return ReadInt(message.Buffer, 0);
 						
 						if (inputs != null && inputs.ContainsKey (message.Channel)) {
 							byte[] sendBuffer = inputs [message.Channel] (ReadUint (message.Buffer, 0));
@@ -1695,10 +1699,10 @@ namespace Mercurial.Client
 							// .NET hates uints
 								int firstPart = message.Buffer.Length / 2;
 								int secondPart = message.Buffer.Length - firstPart;
-								outputs [message.Channel].Write (message.Buffer, 0, firstPart);
-								outputs [message.Channel].Write (message.Buffer, firstPart, secondPart);
+								outputs[message.Channel].Write(message.Buffer, 0, firstPart);
+								outputs[message.Channel].Write(message.Buffer, firstPart, secondPart);
 							} else {
-								outputs [message.Channel].Write (message.Buffer, 0, message.Buffer.Length);
+								outputs[message.Channel].Write(message.Buffer, 0, message.Buffer.Length);
 							}
 						}
 					}
@@ -1740,7 +1744,7 @@ namespace Mercurial.Client
 				{ CommandChannel.Error, error },
 			};
 			
-			int result = RunCommand (command, outputs, inputs);
+			int result = RunCommand(command, outputs, inputs);
 			return new CommandResult(output, error, result);
 		}
 		
