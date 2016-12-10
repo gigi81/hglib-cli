@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.25920.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client", "Mercurial\Mercurial.Client.csproj", "{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client", "src\Mercurial.Client\Mercurial.Client.csproj", "{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client.Tests", "Tests\Mercurial.Client.Tests.csproj", "{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client.Tests", "tests\Mercurial.Client.Tests\Mercurial.Client.Tests.csproj", "{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

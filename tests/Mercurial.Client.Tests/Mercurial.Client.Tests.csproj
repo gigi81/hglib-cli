@@ -17,6 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mercurial\Mercurial.Client.csproj" />
+    <ProjectReference Include="..\..\src\Mercurial.Client\Mercurial.Client.csproj" />
   </ItemGroup>
 </Project>
