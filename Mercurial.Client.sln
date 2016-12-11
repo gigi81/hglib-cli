@@ -1,11 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.25920.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client", "src\Mercurial.Client\Mercurial.Client.csproj", "{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52A51268-FDF5-4767-A73B-61CBA74AF0F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercurial.Client.Tests", "tests\Mercurial.Client.Tests\Mercurial.Client.Tests.csproj", "{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AE19838E-01A6-4ABA-BF8F-B68FAB328AE6}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mercurial.Client", "src\Mercurial.Client\Mercurial.Client.xproj", "{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4D9AED21-6637-466C-86B5-3F06F4076F79}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mercurial.Client.Tests", "tests\Mercurial.Client.Tests\Mercurial.Client.Tests.xproj", "{24C3D222-B732-4C32-A69A-67D2404EDB65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,23 +22,20 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FADE5BAA-E0A3-4B05-A121-CD33A90A76A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC14E588-EA5B-4B87-8D86-E1D25EF29B18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24C3D222-B732-4C32-A69A-67D2404EDB65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24C3D222-B732-4C32-A69A-67D2404EDB65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24C3D222-B732-4C32-A69A-67D2404EDB65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24C3D222-B732-4C32-A69A-67D2404EDB65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = src\Mercurial.Client\Mercurial.Client.csproj
-		Policies = $0
-		$0.StandardHeader = $1
-		$1.Text = @\n ${FileName}\n \n Author:\n      ${AuthorName} <${AuthorEmail}>\n \n Copyright (c) ${Year} ${CopyrightHolder}\n\n This program is free software: you can redistribute it and/or modify\n it under the terms of the GNU Lesser General Public License as published by\n the Free Software Foundation, either version 3 of the License, or\n (at your option) any later version.\n\n This program is distributed in the hope that it will be useful,\n but WITHOUT ANY WARRANTY; without even the implied warranty of\n MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n GNU Lesser General Public License for more details.\n\n You should have received a copy of the GNU Lesser General Public License\n along with this program.  If not, see <http://www.gnu.org/licenses/>.
-		$1.IncludeInNewFiles = True
+	GlobalSection(NestedProjects) = preSolution
+		{ED4558B1-C3C3-4C0B-B693-C6ADD40CF621} = {52A51268-FDF5-4767-A73B-61CBA74AF0F0}
+		{24C3D222-B732-4C32-A69A-67D2404EDB65} = {4D9AED21-6637-466C-86B5-3F06F4076F79}
 	EndGlobalSection
 EndGlobal
