@@ -59,3 +59,12 @@ test_script:
 
 artifacts:
   - path: '**\Mercurial.Client.*.nupkg' # find all NuGet packages recursively
+
+deploy:
+  provider: NuGet
+  on:
+    branch: master
+  api_key:
+    secure: hXjeWuyRjFISP7L9mrGO1OZslEhZE7tlq7ShrukeXjDWV4T3tNOSGBVdQIByWFhP
+  skip_symbols: false
+  artifact: /Mercurial\.Client\..*\.nupkg/
