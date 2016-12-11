@@ -77,16 +77,19 @@ namespace Mercurial.Client
 			if(String.IsNullOrWhiteSpace(output))
 				return revisions;
 
-			using(var reader = new StringReader(output))
-			{
-				var document = XDocument.Load(reader);
+            var index = output.IndexOf(@"<?xml", StringComparison.CurrentCulture);
+            if (index < 0)
+                throw new XmlException("Invalid xml");
 
-				foreach (var node in document.Descendants("log").Descendants("logentry")) {
-					revisions.Add (new Revision (node));
-				}
-				
-				return revisions;
-			}
+            using (var reader = new StringReader(output.Substring(index)))
+            {
+                var document = XDocument.Load(reader);
+
+                foreach (var node in document.Descendants("log").Descendants("logentry"))
+                    revisions.Add(new Revision(node));
+
+                return revisions;
+            }
 		}
 	}
 }
