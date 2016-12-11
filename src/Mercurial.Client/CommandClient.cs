@@ -1508,9 +1508,8 @@ namespace Mercurial.Client
         
         public void Archive (string destination, string revision=null, string prefix=null, ArchiveType type=ArchiveType.Default, bool decode=true, bool recurseSubRepositories=false, string includePattern=null, string excludePattern=null)
         {
-            if (string.IsNullOrEmpty (destination)) {
-                throw new ArgumentException ("Destination cannot be empty", "destination");
-            }
+            if (string.IsNullOrEmpty (destination))
+                throw new ArgumentException ("Destination cannot be empty", nameof(destination));
             
             var arguments = new List<string> (){ "archive" };
             AddNonemptyStringArgument (arguments, revision, "--rev");
@@ -1531,7 +1530,7 @@ namespace Mercurial.Client
         private void Handshake ()
         {
             var handshake = ReadMessage();
-            var headers = ParseDictionary (handshake.Message, new[]{": "});
+            var headers = ParseDictionary(handshake.Message, new[]{": "});
             
             if (!headers.ContainsKey ("encoding") || !headers.ContainsKey ("capabilities"))
                 throw new ServerException ("Error handshaking: expected 'encoding' and 'capabilities' fields");
@@ -1614,21 +1613,23 @@ namespace Mercurial.Client
         /// <exception cref='ArgumentNullException'>
         /// Is thrown when an argument passed to a method is invalid because it is <see langword="null" /> .
         /// </exception>
-        static int ReadAll (Stream stream, byte[] buffer, int offset, int length)
+        static int ReadAll(Stream stream, byte[] buffer, int offset, int length)
         {
             if (null == stream)
-                throw new ArgumentNullException ("stream");
+                throw new ArgumentNullException(nameof(stream));
             
             int remaining = length;
             int read = 0;
             
             for (; remaining > 0 ; offset += read, remaining -= read) {
-                read = stream.Read (buffer, offset, remaining);
+                read = stream.Read(buffer, offset, remaining);
             }
             
             return length - remaining;
         }
         
+        private static readonly byte[] commandBuffer = System.Text.Encoding.UTF8.GetBytes("runcommand\n");
+
         /// <summary>
         /// Sends a command to the command server
         /// </summary>
@@ -1655,47 +1656,46 @@ namespace Mercurial.Client
                                IDictionary<CommandChannel,Func<uint,byte[]>> inputs)
         {
             if (null == command || 0 == command.Count)
-                throw new ArgumentException ("Command must not be empty", "command");
+                throw new ArgumentException("Command must not be empty", nameof(command));
             
-            byte[] commandBuffer = UTF8Encoding.UTF8.GetBytes("runcommand\n");
-            byte[] argumentBuffer;
-            
-            argumentBuffer = command.Aggregate (new List<byte> (), (bytes,arg) =>
+            var argumentBuffer = command.Aggregate(new List<byte>(), (bytes,arg) =>
             {
-                bytes.AddRange(UTF8Encoding.UTF8.GetBytes(arg));
-                bytes.Add (0);
+                bytes.AddRange(System.Text.Encoding.UTF8.GetBytes(arg));
+                bytes.Add(0);
                 return bytes;
             },
             bytes => {
-                bytes.RemoveAt (bytes.Count - 1);
-                return bytes.ToArray ();
+                bytes.RemoveAt(bytes.Count - 1);
+                return bytes.ToArray();
             }
             ).ToArray ();
             
-            byte[] lengthBuffer = BitConverter.GetBytes (IPAddress.HostToNetworkOrder (argumentBuffer.Length));
+            byte[] lengthBuffer = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(argumentBuffer.Length));
             
-            lock (_commandServer) {
-                _commandServer.StandardInput.BaseStream.Write (commandBuffer, 0, commandBuffer.Length);
-                _commandServer.StandardInput.BaseStream.Write (lengthBuffer, 0, lengthBuffer.Length);
-                _commandServer.StandardInput.BaseStream.Write (argumentBuffer, 0, argumentBuffer.Length);
-                _commandServer.StandardInput.BaseStream.Flush ();
+            lock (_commandServer)
+            {
+                _commandServer.StandardInput.BaseStream.Write(commandBuffer, 0, commandBuffer.Length);
+                _commandServer.StandardInput.BaseStream.Write(lengthBuffer, 0, lengthBuffer.Length);
+                _commandServer.StandardInput.BaseStream.Write(argumentBuffer, 0, argumentBuffer.Length);
+                _commandServer.StandardInput.BaseStream.Flush();
             
-                try {
+                try
+                {
                     while (true)
                     {
                         var message = ReadMessage();
                         if (CommandChannel.Result == message.Channel)
                             return ReadInt(message.Buffer, 0);
                         
-                        if (inputs != null && inputs.ContainsKey (message.Channel)) {
-                            byte[] sendBuffer = inputs [message.Channel] (ReadUint (message.Buffer, 0));
-                            if (null == sendBuffer || 0 == sendBuffer.Length) {
-                            } else {
-                            }
+                        if (inputs != null && inputs.ContainsKey(message.Channel)) {
+                            byte[] sendBuffer = inputs[message.Channel](ReadUint(message.Buffer, 0));
                         }
-                        if (outputs != null && outputs.ContainsKey (message.Channel)) {
-                            if (message.Buffer.Length > int.MaxValue) {
-                            // .NET hates uints
+
+                        if (outputs != null && outputs.ContainsKey(message.Channel))
+                        {
+                            if (message.Buffer.Length > int.MaxValue)
+                            {
+                                // .NET hates uints
                                 int firstPart = message.Buffer.Length / 2;
                                 int secondPart = message.Buffer.Length - firstPart;
                                 outputs[message.Channel].Write(message.Buffer, 0, firstPart);
@@ -1705,13 +1705,13 @@ namespace Mercurial.Client
                             }
                         }
                     }
-                } catch (Exception ex) {
-//					Console.WriteLine (commandServer.StandardOutput.ReadToEnd ());
-//					Console.WriteLine (commandServer.StandardError.ReadToEnd ());
-                    Console.WriteLine (string.Join (" ", command.ToArray ()));
-                    Console.WriteLine (ex);
-                    _commandServer.StandardOutput.BaseStream.Flush ();
-                    _commandServer.StandardError.BaseStream.Flush ();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(string.Join(" ", command));
+                    Console.WriteLine(ex);
+                    _commandServer.StandardOutput.BaseStream.Flush();
+                    _commandServer.StandardError.BaseStream.Flush();
                     throw;
                 }
             }// lock commandServer
