@@ -11,7 +11,7 @@ branches:
 skip_tags: true
 
 # Build worker image (VM template)
-image: Visual Studio 2017 RC
+image: Visual Studio 2015
 
 # build cache to preserve files/folders between builds
 cache:
