@@ -597,7 +597,7 @@ namespace Mercurial.Client
 		/// <returns>
 		/// An ordered list of revisions
 		/// </returns>
-		public IList<Revision> Incoming (string source, string toRevision, bool force=false, bool showNewestFirst=false, string bundleFile=null, string branch=null, int limit=0, bool showMerges=true, bool recurseSubRepos=false)
+		public IList<Revision> Incoming (string source = null, string toRevision = null, bool force=false, bool showNewestFirst=false, string bundleFile=null, string branch=null, int limit=0, bool showMerges=true, bool recurseSubRepos=false)
 		{
 			var arguments = new List<string> (){ "incoming", "--style", "xml" };
 			AddNonemptyStringArgument (arguments, toRevision, "--rev");
@@ -721,19 +721,17 @@ namespace Mercurial.Client
 			AddArgumentIf (arguments, onlyTopologicalHeads, "--topo");
 			AddArgumentIf (arguments, showClosed, "--closed");
 			if (null != revisions)
-				arguments.AddRange (revisions);
+				arguments.AddRange(revisions);
 			
-			var result = GetCommandOutput (arguments, null);
+			var result = GetCommandOutput(arguments, null);
 			if (1 != result.Result && 0 != result.Result) {
 				ThrowOnFail (result, 0, "Error getting heads");
 			}
 
-			Console.WriteLine(result.Output);
-
 			try {
 				return Revision.ParseRevisionsFromLog(result.Output);
 			} catch (XmlException ex) {
-				throw new CommandException ("Error getting heads", ex);
+				throw new CommandException("Error getting heads", ex);
 			}
 		}
 		

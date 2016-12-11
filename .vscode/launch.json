@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/src/Mercurial.App/bin/Debug/netcoreapp1.0/Mercurial.App.dll",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "stopAtEntry": false,
+            "externalConsole": false
+        },
+        {
+            "name": "Debug Xunit Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "C:/Program Files/dotnet/dotnet.exe",
+            "args": ["test"],
+            "cwd": "${workspaceRoot}/tests/Mercurial.Client.Tests",
+            "stopAtEntry": false,
+            "externalConsole": false
+        }
+    ]
+}
