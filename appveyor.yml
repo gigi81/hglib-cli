@@ -56,3 +56,6 @@ after_build:
 test_script:
   - dotnet test .\tests\Mercurial.Client.Tests\project.json --configuration Release -xml tests-results01.xml
   - ps: .\build\uploadtests.ps1 "tests-results01.xml"
+
+artifacts:
+  - path: '**\Mercurial.Client.*.nupkg' # find all NuGet packages recursively

@@ -1,6 +1,9 @@
 param(
     [string]
-    $Version = $env:APPVEYOR_BUILD_VERSION
+    $Library = "Mercurial.Client",
+
+    [string]
+    $Version = $env:APPVEYOR_BUILD_VERSION    
 )
 
 $projects = Get-ChildItem -Path $Path -Directory |
@@ -23,9 +26,9 @@ function Set-DotnetProjectVersion
         $changed = $true
     }
     
-    if($json.dependencies.BenchmarkDotNet.version)
+    if($json.dependencies[$Library].version)
     {
-        $json.dependencies.BenchmarkDotNet.version = $version
+        $json.dependencies[$Library].version = $version
         $changed = $true
     }
     
