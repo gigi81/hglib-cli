@@ -42,11 +42,17 @@ configuration: Release
 
 before_build:
   - nuget restore
-  
+  - ps: .\build\version.ps1
+
 build:
   parallel: false                  # enable MSBuild parallel builds
   project: Mercurial.Client.sln    # path to Visual Studio solution or project
   publish_nuget: false             # package projects with .nuspec files and push to artifacts
   publish_nuget_symbols: false     # generate and publish NuGet symbol packages
 
-test:
+after_build:
+  - dotnet pack .\src\Mercurial.Client\project.json --configuration Release
+
+test_script:
+  - dotnet test .\tests\Mercurial.Client.Tests\project.json --configuration Release -xml tests-results01.xml
+  - ps: .\build\uploadtests.ps1 "tests-results01.xml"
