@@ -6,9 +6,7 @@ param(
     $Version = $env:APPVEYOR_BUILD_VERSION    
 )
 
-$projects = Get-ChildItem -Path $Path -Directory |
-                    foreach { "$($_.Fullname)\project.json" } |
-                    Where-Object { Test-Path $_ }
+$projects = (Get-ChildItem -Path $Path -Filter "Project.json" -Recurse -File).Fullname
 
 function Set-DotnetProjectVersion
 {
@@ -21,20 +19,25 @@ function Set-DotnetProjectVersion
     $json = Get-Content -Raw -Path $project | ConvertFrom-Json
     if($json.version)
     {
-        Write-Host "Setting version $version on project $project"
+        Write-Host "Updating version on project $project to $version"
         $json.version = $version
         $changed = $true
     }
     
-    if($json.dependencies[$Library].version)
+    $property = $json.dependencies.PSobject.Properties | Where-Object { $_.Name -eq $Library }
+    
+    if($property)
     {
-        $json.dependencies[$Library].version = $version
+        Write-Host "Updating dependency version on $project to $version"
+        $property.Value = $version
         $changed = $true
     }
     
     if($changed)
     {
-        $json | ConvertTo-Json -depth 999 | Out-File $project
+        $encoding = New-Object System.Text.UTF8Encoding($False)
+        $content = $json | ConvertTo-Json -depth 50
+        [System.IO.File]::WriteAllText($project, $content, $encoding)
     }
 }
 
