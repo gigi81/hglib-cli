@@ -13,7 +13,7 @@
       "type": "git",
       "url": "https://github.com/gigi81/hglib-cli"
     },
-    "tags": [ "mercurial hg client" ]
+    "tags": [ "mercurial", "hg", "client" ]
   },
   "frameworks": {
     "netstandard1.3": {
