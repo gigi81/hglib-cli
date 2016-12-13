@@ -153,7 +153,7 @@ namespace Mercurial.Client
                 CreateNoWindow = true
             };
 
-#if NET45
+#if NET451
             if (String.IsNullOrEmpty(encoding))
                 info.EnvironmentVariables[MercurialEncodingKey] = encoding;
 #else
