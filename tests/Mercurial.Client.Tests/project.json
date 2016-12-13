@@ -7,7 +7,7 @@
     "xunit.runner.visualstudio": "2.2.0-beta4-build1194",
     "dotnet-test-xunit": "2.2.0-preview2-build1029"
   },
-   "frameworks": {
+  "frameworks": {
     "netcoreapp1.1": {
       "imports": [
         "dnxcore50",
@@ -28,5 +28,5 @@
         "System.Runtime": "4.0.10.0"
       }
     }
-   }
+  }
 }
