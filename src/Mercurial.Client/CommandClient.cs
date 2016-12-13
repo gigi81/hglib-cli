@@ -153,9 +153,13 @@ namespace Mercurial.Client
                 CreateNoWindow = true
             };
 
+#if NET45
+            if (String.IsNullOrEmpty(encoding))
+                info.EnvironmentVariables[MercurialEncodingKey] = encoding;
+#else
             if (String.IsNullOrEmpty(encoding))
                 info.Environment[MercurialEncodingKey] = encoding;
-
+#endif
             try
             {
                 _commandServer = Process.Start(info);
@@ -1525,7 +1529,7 @@ namespace Mercurial.Client
             ThrowOnFail(GetCommandOutput(arguments), 0, string.Format("Error archiving to {0}", destination));
         }
         
-        #region Plumbing
+#region Plumbing
         
         private void Handshake ()
         {
@@ -1754,7 +1758,7 @@ namespace Mercurial.Client
             _commandServer = null;
         }
 
-        #region IDisposable implementation
+#region IDisposable implementation
         
         /// <summary>
         /// Releases all resources used by the <see cref="Mercurial.CommandClient"/> object.
@@ -1770,11 +1774,11 @@ namespace Mercurial.Client
             Close ();
         }
         
-        #endregion		
+#endregion
         
-        #endregion
+#endregion
         
-        #region Utility
+#region Utility
         
         /// <summary>
         /// Reads an int from a buffer in network byte order
@@ -2031,7 +2035,7 @@ namespace Mercurial.Client
             return FileStatus.Clean;
         }
                 
-        #endregion
+#endregion
     }
 }
 

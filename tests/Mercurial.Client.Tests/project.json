@@ -2,22 +2,31 @@
   "version": "1.0.0-*",
   "testRunner": "xunit",
   "dependencies": {
-     "xunit": "2.2.0-beta4-build3444",
-      "dotnet-test-xunit": "2.2.0-preview2-build1029",
-      "Mercurial.Client": "1.0.0-*",
-      "Microsoft.NETCore.App": {
-        "type": "platform",
-        "version": "1.1.0"
-      },
-      "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
-   },
+    "xunit": "2.2.0-beta4-build3444",
+    "Mercurial.Client": "1.0.0-*",
+    "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
+  },
    "frameworks": {
-     "netcoreapp1.1": {
+    "netcoreapp1.1": {
       "imports": [
         "dnxcore50",
         "portable-net45+win8",
         "netstandard1.6"
-      ]
-     }
+      ],
+      "dependencies": {
+        "dotnet-test-xunit": "2.2.0-preview2-build1029",
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.1.0"
+        }
+      }
+    },
+    "net45": {
+      "frameworkAssemblies": {
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0",
+        "System.Runtime": "4.0.0.0"
+      }
+    }
    }
 }
