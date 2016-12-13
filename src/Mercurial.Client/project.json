@@ -1,6 +1,20 @@
 ﻿{
   "version": "1.0.0-*",
-
+  "authors": [ "Luigi Grilli", "Levi Bard" ],
+  "description": ".NET Mercurial Client Library",
+  "copyright": "Copyright (c) 2011 Levi Bard, Copyright (c) 2016 Luigi Grilli",
+  "packOptions": {
+    "owners": [ "Luigi Grilli", "Levi Bard" ],
+    "licenseUrl": "https://github.com/gigi81/hglib-cli/blob/master/COPYING.LESSER",
+    "projectUrl": "https://github.com/gigi81/hglib-cli",
+    "iconUrl": "https://www.mercurial-scm.org/repo/hg-website/static/hglogo.png",
+    "requireLicenseAcceptance": false,
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/gigi81/hglib-cli"
+    },
+    "tags": [ "mercurial hg client" ]
+  },
   "frameworks": {
     "netstandard1.3": {
       "imports": "dnxcore50",
