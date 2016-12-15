@@ -17,5 +17,4 @@ install:
 
 script:
   - dotnet restore
-  - dotnet build **/*/project.json
-  - dotnet test tests/Mercurial.Client.Tests/project.json
+  - dotnet test tests/Mercurial.Client.Tests/project.json -f "netcoreapp1.1"
